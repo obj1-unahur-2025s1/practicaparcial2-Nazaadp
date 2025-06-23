@@ -39,7 +39,7 @@ class Aldea inherits Localidad  {
     override method asignarUnHabitante(personaje) {
 
         if(limiteHabitantes > habitantes.size() ) {
-            super()
+            super(personaje)
         }
     }
   
