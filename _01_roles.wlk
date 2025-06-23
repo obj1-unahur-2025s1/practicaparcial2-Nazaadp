@@ -25,13 +25,13 @@ object cazador inherits Rol (fuerza = 1, inteligencia = 1) {
 
     override method name() = "cazador"
 
-    override method esGroso() = mascotaCazador.esLongeva_mascota()
+    override method esGroso() = if(mascotaCazador != null) mascotaCazador.esLongeva_mascota() else false
 
     method asignarMascotaCon(fuerza_mascota, edad_mascota, tieneGarras_mascota) {
         mascotaCazador = new MascotaCazador(fuerza_mascota = fuerza_mascota, edad_mascota = edad_mascota, tieneGarras_mascota = tieneGarras_mascota)
     }
 
-    override method potencialOfensivo() = mascotaCazador.potencialOfensivo_mascota()
+    override method potencialOfensivo() = if(mascotaCazador != null) mascotaCazador.potencialOfensivo_mascota() else 0
   
 }
 

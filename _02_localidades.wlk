@@ -15,10 +15,12 @@ class Localidad {
 
     method removerUnHabitante(personaje) {
         habitantes.remove(personaje)
+        potencialOfensivoTotal -= personaje.potencialOfensivo()
     }
 
     method desalojarHabitantes() {
         habitantes.clear()
+        potencialOfensivoTotal = 0
     }
 
     method invadir(localidad) {

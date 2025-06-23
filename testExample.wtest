@@ -1,0 +1,311 @@
+import _00_personajes.*
+import _01_roles.*
+import _02_localidades.*
+
+test "personaje should have default properties" {
+  const personaje = new Humano()
+  assert.equals(guerrero, personaje.rolActual())
+  assert.equals(null, personaje.localidad())
+}
+
+test "personaje should be able to change role" {
+  const personaje = new Humano()
+  personaje.crearPersonaje(cazador)
+  assert.equals(cazador, personaje.rolActual())
+}
+
+test "personaje should be able to assign to localidad" {
+  const personaje = new Humano()
+  const aldea = new Aldea(5)
+  aldea.nombre = "TestAldea"
+  personaje.asignarAUnaLocalidad(aldea)
+  assert.equals(aldea, personaje.localidad())
+}
+
+test "orco should never be intelligent" {
+  const orco = new Orco()
+  assert.equals(false, orco.esInteligente())
+}
+
+test "orco should have 10% more offensive potential" {
+  const orco = new Orco()
+  orco.crearPersonaje(guerrero)
+  // Guerrero base: (1 * 10) + 100 = 110
+  // Orco with 10% bonus: 110 * 1.1 = 121
+  assert.equals(121, orco.potencialOfensivo())
+}
+
+test "humano should be intelligent if inteligencia > 50" {
+  const humano = new Humano()
+  humano.crearPersonaje(guerrero)
+  // Guerrero has inteligencia = 1, so humano should not be intelligent
+  assert.equals(false, humano.esInteligente())
+}
+
+test "guerrero should have correct offensive potential" {
+  // (1 * 10) + 100 = 110
+  assert.equals(110, guerrero.potencialOfensivo())
+}
+
+test "guerrero should be groso if fuerza > 50" {
+  // Guerrero has fuerza = 1, so should not be groso
+  assert.equals(false, guerrero.esGroso())
+}
+
+test "cazador should be groso if mascota is longeva" {
+  // Cazador without mascota should not be groso (null.esLongeva_mascota() would fail)
+  // Need to check if mascota exists first
+  assert.equals(false, cazador.esGroso())
+}
+
+test "cazador should be able to assign mascota" {
+  cazador.asignarMascotaCon(fuerza_mascota = 5, edad_mascota = 15, tieneGarras_mascota = true)
+  assert.equals(true, cazador.esGroso()) // mascota is longeva (edad > 10)
+}
+
+test "cazador mascota offensive potential with claws" {
+  cazador.asignarMascotaCon(fuerza_mascota = 5, edad_mascota = 15, tieneGarras_mascota = true)
+  // With claws: fuerza * 2 = 5 * 2 = 10
+  assert.equals(10, cazador.potencialOfensivo())
+}
+
+test "cazador mascota offensive potential without claws" {
+  cazador.asignarMascotaCon(fuerza_mascota = 5, edad_mascota = 15, tieneGarras_mascota = false)
+  // Without claws: fuerza = 5
+  assert.equals(5, cazador.potencialOfensivo())
+}
+
+test "brujo should always be groso" {
+  assert.equals(true, brujo.esGroso())
+}
+
+test "brujo should have no extra offensive potential" {
+  // (1 * 10) + 0 = 10
+  assert.equals(10, brujo.potencialOfensivo())
+}
+
+test "mascota should be longeva if edad > 10" {
+  const mascota = new MascotaCazador()
+  mascota.fuerza_mascota = 5
+  mascota.edad_mascota = 15
+  mascota.tieneGarras_mascota = true
+  assert.equals(true, mascota.esLongeva_mascota())
+}
+
+test "mascota should not be longeva if edad <= 10" {
+  const mascota = new MascotaCazador()
+  mascota.fuerza_mascota = 5
+  mascota.edad_mascota = 10
+  mascota.tieneGarras_mascota = true
+  assert.equals(false, mascota.esLongeva_mascota())
+}
+
+test "mascota offensive potential with claws" {
+  const mascota = new MascotaCazador()
+  mascota.fuerza_mascota = 5
+  mascota.edad_mascota = 15
+  mascota.tieneGarras_mascota = true
+  assert.equals(10, mascota.potencialOfensivo_mascota()) // 5 * 2 = 10
+}
+
+test "mascota offensive potential without claws" {
+  const mascota = new MascotaCazador()
+  mascota.fuerza_mascota = 5
+  mascota.edad_mascota = 15
+  mascota.tieneGarras_mascota = false
+  assert.equals(5, mascota.potencialOfensivo_mascota()) // 5
+}
+
+test "localidad should start with empty habitantes" {
+  const localidad = new Localidad()
+  localidad.nombre = "TestLocalidad"
+  assert.equals(0, localidad.habitantes().size())
+  assert.equals(0, localidad.potencialOfensivoTotal())
+}
+
+test "localidad should be able to assign habitante" {
+  const localidad = new Localidad()
+  localidad.nombre = "TestLocalidad"
+  const personaje = new Humano()
+  personaje.crearPersonaje(guerrero)
+  
+  localidad.asignarUnHabitante(personaje)
+  
+  assert.equals(1, localidad.habitantes().size())
+  assert.equals(110, localidad.potencialOfensivoTotal()) // guerrero potential
+  assert.equals(localidad, personaje.localidad())
+}
+
+test "localidad should remove habitante from previous localidad" {
+  const localidad1 = new Localidad()
+  localidad1.nombre = "Localidad1"
+  const localidad2 = new Localidad()
+  localidad2.nombre = "Localidad2"
+  const personaje = new Humano()
+  personaje.crearPersonaje(guerrero)
+  
+  localidad1.asignarUnHabitante(personaje)
+  assert.equals(1, localidad1.habitantes().size())
+  
+  localidad2.asignarUnHabitante(personaje)
+  assert.equals(0, localidad1.habitantes().size())
+  assert.equals(1, localidad2.habitantes().size())
+  assert.equals(localidad2, personaje.localidad())
+}
+
+test "localidad should sort habitantes by offensive potential" {
+  const localidad = new Localidad()
+  localidad.nombre = "TestLocalidad"
+  const personaje1 = new Humano()
+  const personaje2 = new Humano()
+  
+  personaje1.crearPersonaje(guerrero) // potential: 110
+  personaje2.crearPersonaje(brujo)    // potential: 10
+  
+  localidad.asignarUnHabitante(personaje2) // add weaker first
+  localidad.asignarUnHabitante(personaje1) // add stronger second
+  
+  // Should be sorted by potential (strongest first)
+  assert.equals(personaje1, localidad.habitantes().get(0))
+  assert.equals(personaje2, localidad.habitantes().get(1))
+}
+
+test "localidad should be able to remove habitante" {
+  const localidad = new Localidad()
+  localidad.nombre = "TestLocalidad"
+  const personaje = new Humano()
+  personaje.crearPersonaje(guerrero)
+  
+  localidad.asignarUnHabitante(personaje)
+  assert.equals(1, localidad.habitantes().size())
+  
+  localidad.removerUnHabitante(personaje)
+  assert.equals(0, localidad.habitantes().size())
+}
+
+test "localidad should be able to desalojar all habitantes" {
+  const localidad = new Localidad()
+  localidad.nombre = "TestLocalidad"
+  const personaje1 = new Humano()
+  const personaje2 = new Humano()
+  
+  personaje1.crearPersonaje(guerrero)
+  personaje2.crearPersonaje(brujo)
+  
+  localidad.asignarUnHabitante(personaje1)
+  localidad.asignarUnHabitante(personaje2)
+  assert.equals(2, localidad.habitantes().size())
+  
+  localidad.desalojarHabitantes()
+  assert.equals(0, localidad.habitantes().size())
+}
+
+test "aldea should respect habitante limit" {
+  const aldea = new Aldea(2)
+  aldea.nombre = "TestAldea"
+  const personaje1 = new Humano()
+  const personaje2 = new Humano()
+  const personaje3 = new Humano()
+  
+  personaje1.crearPersonaje(guerrero)
+  personaje2.crearPersonaje(brujo)
+  personaje3.crearPersonaje(cazador)
+  
+  aldea.asignarUnHabitante(personaje1)
+  aldea.asignarUnHabitante(personaje2)
+  assert.equals(2, aldea.habitantes().size())
+  
+  aldea.asignarUnHabitante(personaje3)
+  assert.equals(2, aldea.habitantes().size()) // Should not add third personaje
+  assert.equals(null, personaje3.localidad()) // Should not be assigned
+}
+
+test "aldea should allow habitante within limit" {
+  const aldea = new Aldea(1)
+  aldea.nombre = "TestAldea"
+  const personaje = new Humano()
+  personaje.crearPersonaje(guerrero)
+  
+  aldea.asignarUnHabitante(personaje)
+  assert.equals(1, aldea.habitantes().size())
+  assert.equals(aldea, personaje.localidad())
+}
+
+test "ciudad should have 300 bonus defense" {
+  const ciudad = new Ciudad()
+  ciudad.nombre = "TestCiudad"
+  const personaje = new Humano()
+  personaje.crearPersonaje(guerrero)
+  
+  ciudad.asignarUnHabitante(personaje)
+  assert.equals(410, ciudad.defender()) // 110 (personaje) + 300 (bonus)
+}
+
+test "ciudad should not have habitante limit" {
+  const ciudad = new Ciudad()
+  ciudad.nombre = "TestCiudad"
+  const personaje1 = new Humano()
+  const personaje2 = new Humano()
+  const personaje3 = new Humano()
+  
+  personaje1.crearPersonaje(guerrero)
+  personaje2.crearPersonaje(brujo)
+  personaje3.crearPersonaje(cazador)
+  
+  ciudad.asignarUnHabitante(personaje1)
+  ciudad.asignarUnHabitante(personaje2)
+  ciudad.asignarUnHabitante(personaje3)
+  
+  assert.equals(3, ciudad.habitantes().size())
+}
+
+test "ejercito should successfully invade if stronger" {
+  const aldea = new Aldea(10)
+  aldea.nombre = "AldeaDefensora"
+  const ejercito = new Localidad()
+  ejercito.nombre = "EjercitoInvasor"
+  
+  const defensor = new Humano()
+  defensor.crearPersonaje(guerrero) // potential: 110
+  
+  const invasor1 = new Humano()
+  invasor1.crearPersonaje(guerrero) // potential: 110
+  const invasor2 = new Humano()
+  invasor2.crearPersonaje(guerrero) // potential: 110
+  
+  aldea.asignarUnHabitante(defensor)
+  ejercito.asignarUnHabitante(invasor1)
+  ejercito.asignarUnHabitante(invasor2)
+  
+  // Ejercito total: 220, Aldea total: 110
+  ejercito.invadir(aldea)
+  
+  assert.equals(2, aldea.habitantes().size()) // Invasores should now be in aldea
+  assert.equals(0, ejercito.habitantes().size()) // Ejercito should be empty
+}
+
+test "ejercito should fail invasion if weaker" {
+  const aldea = new Aldea(10)
+  aldea.nombre = "AldeaDefensora"
+  const ejercito = new Localidad()
+  ejercito.nombre = "EjercitoInvasor"
+  
+  const defensor1 = new Humano()
+  defensor1.crearPersonaje(guerrero) // potential: 110
+  const defensor2 = new Humano()
+  defensor2.crearPersonaje(guerrero) // potential: 110
+  
+  const invasor = new Humano()
+  invasor.crearPersonaje(brujo) // potential: 10
+  
+  aldea.asignarUnHabitante(defensor1)
+  aldea.asignarUnHabitante(defensor2)
+  ejercito.asignarUnHabitante(invasor)
+  
+  // Ejercito total: 10, Aldea total: 220
+  ejercito.invadir(aldea)
+  
+  assert.equals(2, aldea.habitantes().size()) // Aldea should keep defenders
+  assert.equals(1, ejercito.habitantes().size()) // Invasor should stay in ejercito
+}
+
