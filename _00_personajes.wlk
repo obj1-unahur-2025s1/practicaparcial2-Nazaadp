@@ -11,17 +11,14 @@ class Personaje {
   method esGroso() = self.esInteligente() || self.rolActual().esGroso()
   method potencialOfensivo() = rolActual.potencialOfensivo()
 
-  method crearPersonaje(rolSeleccionado, localidadAsignada) {
+  method crearPersonaje(rolSeleccionado) {
     
     rolActual = self.seleccionarRol(rolSeleccionado)
-    self.asignarAUnaLocalidad(localidadAsignada)
   }
 
   method seleccionarRol(rolSeleccionado) = roles.findOrElse({ rol => rol.name() == rolSeleccionado.name() }, guerrero)
 
   method asignarAUnaLocalidad(localidadAsignada) {
-
-    localidadAsignada.asignarUnHabitante(self)
     localidad = localidadAsignada
   }
 
